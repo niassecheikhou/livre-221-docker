@@ -1,0 +1,86 @@
+name: CI
+
+on: [push, pull_request]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-checks:
+    name: Backend Checks
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: livre221docker
+          POSTGRES_PASSWORD: livre221docker
+          POSTGRES_DB: livre221docker
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U livre221docker -d livre221docker"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      PORT: 5000
+      DATABASE_URL: postgresql://livre221docker:livre221docker@localhost:5432/livre221docker?schema=public
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Apply Prisma migrations
+        run: npx prisma migrate deploy
+
+      - name: Start API and smoke test
+        run: |
+          node src/server.js > server.log 2>&1 &
+          SERVER_PID=$!
+
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:5000/api-docs > /dev/null; then
+              echo "API started successfully."
+              kill $SERVER_PID
+              wait $SERVER_PID || true
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "API did not start in time. Server logs:"
+          cat server.log
+          kill $SERVER_PID || true
+          wait $SERVER_PID || true
+          exit 1
+
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate compose file
+        run: docker compose config
+
+      - name: Build Docker image
+        run: docker build -t livre-221:ci .
