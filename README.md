@@ -409,6 +409,7 @@ Il s'execute sur chaque `push` et `pull_request` et lance deux jobs :
 
 - `Backend Checks` :
   - installation (`npm ci`)
+  - tests unitaires (`npm run test:unit`)
   - validation Prisma (`prisma validate`)
   - generation client Prisma
   - application des migrations sur PostgreSQL de service
