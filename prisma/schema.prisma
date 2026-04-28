@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StatutCommande {
+  EN_COURS
+  EXPEDIEE
+  LIVREE
+  ANNULEE
+}
+
+model Editeur {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  nom       String
+  adresse   String?
+  email     String   @unique
+  archivedAt DateTime?
+  livres    Livre[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([archivedAt])
+  @@map("editeurs")
+}
+
+model Livre {
+  id        Int        @id @default(autoincrement())
+  isbn      String     @unique
+  titre     String
+  auteur    String
+  prix      Decimal    @db.Decimal(10, 2)
+  qteStock  Int
+  editeurId Int
+  archivedAt DateTime?
+  editeur   Editeur    @relation(fields: [editeurId], references: [id], onDelete: Restrict)
+  commandes Commande[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([titre, auteur])
+  @@index([editeurId])
+  @@index([archivedAt])
+  @@map("livres")
+}
+
+model Client {
+  id               Int        @id @default(autoincrement())
+  prenom           String
+  nom              String
+  email            String     @unique
+  telephone        String?
+  adresseLivraison String
+  archivedAt       DateTime?
+  commandes        Commande[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([archivedAt])
+  @@map("clients")
+}
+
+model Commande {
+  id           Int            @id @default(autoincrement())
+  clientId     Int
+  livreId      Int
+  quantite     Int
+  dateCommande DateTime
+  montantTotal Decimal        @db.Decimal(10, 2)
+  statut       StatutCommande @default(EN_COURS)
+  archivedAt   DateTime?
+  client       Client         @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  livre        Livre          @relation(fields: [livreId], references: [id], onDelete: Restrict)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([clientId])
+  @@index([livreId])
+  @@index([statut])
+  @@index([archivedAt])
+  @@map("commandes")
+}
