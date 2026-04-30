@@ -6,7 +6,8 @@
   "main": "src/server.js",
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "node tests/unit/run-unit-tests.js",
+    "test:unit": "jest",
+    "test:unit:watch": "jest --watch",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "build": "npm install && npx prisma generate"
