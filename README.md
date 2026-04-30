@@ -355,3 +355,65 @@ Port deja occupe :
 4. Executer `npx prisma migrate dev --name init`
 5. Lancer `npm run dev`
 6. Ouvrir `http://localhost:5000/api-docs`
+
+---
+
+## 13. Dockerisation
+
+Le projet contient maintenant :
+
+- `Dockerfile` pour l'API Node.js
+- `docker-compose.yml` pour orchestrer l'API + PostgreSQL
+- `docker-entrypoint.sh` pour appliquer les migrations Prisma au demarrage
+
+Configuration recommandee :
+
+- Un seul fichier `.env` pour le projet
+- `DATABASE_URL` pour l'execution locale (Node hors Docker)
+- `DATABASE_URL_DOCKER` pour l'execution dans le conteneur API
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` pour initialiser PostgreSQL
+
+### 13.1 Lancer avec Docker Compose
+
+```bash
+docker compose up --build
+```
+
+Ensuite :
+
+- API : `http://localhost:5000`
+- Swagger : `http://localhost:5000/api-docs`
+- PostgreSQL : `localhost:5433`
+
+### 13.2 Arreter les conteneurs
+
+```bash
+docker compose down
+```
+
+Pour arreter et supprimer aussi le volume de donnees PostgreSQL :
+
+```bash
+docker compose down -v
+```
+
+---
+
+## 14. CI GitHub Actions
+
+Un workflow CI est configure dans :
+
+- `.github/workflows/ci.yml`
+
+Il s'execute sur chaque `push` et `pull_request` et lance deux jobs :
+
+- `Backend Checks` :
+  - installation (`npm ci`)
+  - tests unitaires (`npm run test:unit`)
+  - validation Prisma (`prisma validate`)
+  - generation client Prisma
+  - application des migrations sur PostgreSQL de service
+  - smoke test de demarrage API (`/api-docs`)
+- `Docker Build` :
+  - validation de `docker-compose.yml`
+  - build de l'image Docker
