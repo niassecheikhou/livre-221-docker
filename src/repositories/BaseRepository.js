@@ -64,6 +64,9 @@ class BaseRepository {
       where: { id }
     });
   }
+     
+
+  
 }
 
 export default BaseRepository;

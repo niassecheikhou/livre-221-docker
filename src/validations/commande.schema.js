@@ -6,6 +6,7 @@ const createCommandeSchema = z.object({
     livreId: z.number().int().positive('livreId invalide'),
     quantite: z.number().int().positive('La quantité doit être > 0'),
     dateCommande: z.string().datetime('dateCommande invalide')
+    
   }),
   params: z.object({}).optional(),
   query: z.object({}).optional()

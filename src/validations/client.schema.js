@@ -3,6 +3,7 @@ import { z } from 'zod';
 const senegalPhoneRegex = /^\+221(70|71|75|76|77|78)\d{7}$/;
 const gmaiEmailRegex = /^[^\s@]+@gmai\.com$/i;
 
+
 const createClientSchema = z.object({
   body: z.object({
     prenom: z.string().min(1, 'Prenom obligatoire'),
@@ -19,9 +20,12 @@ const createClientSchema = z.object({
       )
       .optional(),
     adresseLivraison: z.string().min(1, 'Adresse de livraison obligatoire')
+
   }),
+
   params: z.object({}).optional(),
   query: z.object({}).optional()
+
 });
 
 export {
