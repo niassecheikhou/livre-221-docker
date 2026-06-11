@@ -1,4 +1,4 @@
-# API LIVRE 221 - Documentation complete du projet
+clear# API LIVRE 221 - Documentation complete du projet
 
 ## 1. Vue d'ensemble
 
