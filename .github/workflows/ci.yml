@@ -10,6 +10,25 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  commit-message-check:
+    name: Commit Message Check
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate commit message contains emoji
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          SUCCESS_EMOJI=$(printf '\xE2\x9C\x85')
+          FAIL_EMOJI=$(printf '\xE2\x9D\x8C')
+          echo "Commit message: $COMMIT_MESSAGE"
+          if echo "$COMMIT_MESSAGE" | perl -CS -ne 'exit 0 if /\p{Emoji}/; END { exit 1 }'; then
+            echo "$SUCCESS_EMOJI Commit message contains an emoji."
+          else
+            echo "$FAIL_EMOJI Commit message must include at least one emoji."
+            exit 1
+          fi
+
   backend-checks:
     name: Backend Checks
     runs-on: ubuntu-latest
